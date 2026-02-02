@@ -1,12 +1,11 @@
 from flask import Flask, render_template, request
 import sqlite3
-import os
 
 app = Flask(__name__)
 
 FLAG = "cyber{sqli_login_bypass}"
 
-# SQLite in-memory DB
+# In-memory database (CTF style)
 conn = sqlite3.connect(":memory:", check_same_thread=False)
 cursor = conn.cursor()
 
@@ -20,6 +19,7 @@ CREATE TABLE users (
 cursor.execute("""
 INSERT INTO users VALUES ('admin', 'hidden_password')
 """)
+
 conn.commit()
 
 
@@ -30,6 +30,7 @@ def login():
         username = request.form.get("username", "")
         password = request.form.get("password", "")
 
+        # ❌ INTENTIONALLY VULNERABLE QUERY
         query = (
             "SELECT * FROM users "
             "WHERE username = '" + username + "' "
@@ -48,9 +49,3 @@ def login():
             message = "Invalid credentials"
 
     return render_template("login.html", message=message)
-
-
-# 🔥 REQUIRED FOR RAILWAY
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
